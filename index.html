@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Он бы тебе сказал</title>
+  <meta name="description" content="Вечеринка-игра: озвучь голосом, что предмет из твоей комнаты думает о тебе." />
+  <meta name="theme-color" content="#121016" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗣️</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1 class="logo">Он бы тебе сказал<span class="logo-dot">.</span></h1>
+    </header>
+
+    <main class="stage">
+      <!-- Экран 1: старт -->
+      <section id="screen-start" class="screen is-active" aria-live="polite">
+        <div class="screen-inner">
+          <p class="tagline">Вечеринка-игра про вещи, которые слишком много о тебе знают</p>
+          <div class="hero-emoji" aria-hidden="true">🪞</div>
+          <p class="rules">
+            Достань случайный предмет из своей комнаты и озвучь голосом,
+            что он на самом деле думает о своём хозяине. У тебя будет 10 секунд.
+          </p>
+          <button id="btn-start" class="btn btn-primary btn-lg" type="button">
+            Достать предмет
+          </button>
+        </div>
+      </section>
+
+      <!-- Экран 2: категория -->
+      <section id="screen-category" class="screen" aria-live="polite">
+        <div class="screen-inner">
+          <p class="eyebrow">Раунд <span id="round-number">1</span></p>
+          <p class="category-label">Достань что-нибудь из категории</p>
+          <div class="category-card">
+            <span id="category-text" class="category-text">что-то на кухне</span>
+          </div>
+          <p class="rules rules-small">
+            Возьми первый попавшийся предмет и представь: если бы он мог говорить —
+            что бы он сказал о тебе?
+          </p>
+          <button id="btn-record" class="btn btn-primary btn-lg" type="button">
+            🎙️ Записать реплику
+          </button>
+          <p id="mic-error" class="mic-error" hidden></p>
+        </div>
+      </section>
+
+      <!-- Экран 3: запись -->
+      <section id="screen-recording" class="screen" aria-live="polite">
+        <div class="screen-inner">
+          <p class="category-label">Говори за:</p>
+          <div class="category-card category-card-small">
+            <span id="category-text-recording" class="category-text">что-то на кухне</span>
+          </div>
+
+          <div class="recorder">
+            <div class="recorder-badge">
+              <span class="rec-dot" aria-hidden="true"></span>
+              <span>Запись</span>
+            </div>
+
+            <canvas id="waveform" class="waveform" width="600" height="140" aria-hidden="true"></canvas>
+
+            <div class="timer-track">
+              <div id="timer-bar" class="timer-bar"></div>
+            </div>
+            <div id="timer-text" class="timer-text">10</div>
+          </div>
+
+          <button id="btn-cancel-recording" class="btn btn-ghost" type="button">
+            Отменить
+          </button>
+        </div>
+      </section>
+
+      <!-- Экран 4: воспроизведение -->
+      <section id="screen-playback" class="screen" aria-live="polite">
+        <div class="screen-inner">
+          <p class="category-label">Реплика от лица:</p>
+          <div class="category-card category-card-small">
+            <span id="category-text-playback" class="category-text">что-то на кухне</span>
+          </div>
+
+          <div class="player">
+            <button id="btn-play" class="play-btn" type="button" aria-label="Воспроизвести">
+              <svg id="icon-play" viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+              <svg id="icon-pause" viewBox="0 0 24 24" class="icon" hidden aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+            </button>
+            <div class="player-track">
+              <div id="player-progress" class="player-progress"></div>
+            </div>
+          </div>
+
+          <audio id="audio-clip" preload="metadata"></audio>
+
+          <div class="action-row">
+            <button id="btn-send" class="btn btn-accent" type="button">Отправить</button>
+            <button id="btn-next" class="btn btn-primary" type="button">Следующий раунд</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
