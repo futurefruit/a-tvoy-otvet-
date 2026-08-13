@@ -2,19 +2,24 @@
 
 /* ==========================================================================
    Он бы тебе сказал — игровая логика
+
+   Тексты категорий и интерфейса берутся из словаря STRINGS (i18n.js) через
+   функцию t(). Здесь хранятся только КЛЮЧИ категорий — сам текст на
+   конкретном языке подставляется в момент отрисовки, поэтому переключение
+   языка (см. i18n.js) обновляет и уже показанную категорию.
    ========================================================================== */
 
-const CATEGORIES = [
-  "что-то на кухне",
-  "что-то в сумке",
-  "что-то в ванной",
-  "что-то на рабочем столе",
-  "что-то в кармане куртки",
-  "что-то в холодильнике",
-  "что-то под кроватью",
-  "что-то в машине",
-  "что-то на полке с обувью",
-  "что-то в ящике с зарядками",
+const CATEGORY_KEYS = [
+  "kitchen",
+  "bag",
+  "bathroom",
+  "desk",
+  "jacket",
+  "fridge",
+  "underBed",
+  "car",
+  "shoeShelf",
+  "chargerDrawer",
 ];
 
 const RECORD_SECONDS = 10;
@@ -56,7 +61,7 @@ const els = {
 
 let state = {
   round: 1,
-  category: pickCategory(),
+  categoryKey: pickCategoryKey(),
   mediaStream: null,
   mediaRecorder: null,
   audioContext: null,
@@ -68,9 +73,13 @@ let state = {
   countdownTimeoutId: null,
 };
 
-function pickCategory(exclude) {
-  const pool = exclude ? CATEGORIES.filter((c) => c !== exclude) : CATEGORIES;
+function pickCategoryKey(exclude) {
+  const pool = exclude ? CATEGORY_KEYS.filter((k) => k !== exclude) : CATEGORY_KEYS;
   return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function categoryText() {
+  return t(`categories.${state.categoryKey}`);
 }
 
 function showScreen(name) {
@@ -92,10 +101,10 @@ function showToast(message, duration = 2600) {
 function goToCategoryScreen(isNewRound) {
   if (isNewRound) {
     state.round += 1;
-    state.category = pickCategory(state.category);
+    state.categoryKey = pickCategoryKey(state.categoryKey);
   }
   els.roundNumber.textContent = String(state.round);
-  els.categoryText.textContent = state.category;
+  els.categoryText.textContent = categoryText();
   els.micError.hidden = true;
   showScreen("category");
 }
@@ -109,15 +118,14 @@ async function startRecording() {
   } catch (err) {
     console.error("getUserMedia failed", err);
     els.micError.hidden = false;
-    els.micError.textContent =
-      "Не удалось получить доступ к микрофону. Разреши доступ в настройках браузера и попробуй снова.";
+    els.micError.textContent = t("micError");
     return;
   }
 
   state.mediaStream = stream;
   state.chunks = [];
 
-  els.categoryTextRecording.textContent = state.category;
+  els.categoryTextRecording.textContent = categoryText();
   showScreen("recording");
 
   setupWaveform(stream);
@@ -295,7 +303,7 @@ function onRecordingStop() {
 }
 
 function goToPlaybackScreen() {
-  els.categoryTextPlayback.textContent = state.category;
+  els.categoryTextPlayback.textContent = categoryText();
   els.audioClip.src = state.clipUrl;
   resetPlayButton();
   showScreen("playback");
@@ -306,7 +314,7 @@ function goToPlaybackScreen() {
 function resetPlayButton() {
   els.iconPlay.hidden = false;
   els.iconPause.hidden = true;
-  els.btnPlay.setAttribute("aria-label", "Воспроизвести");
+  els.btnPlay.setAttribute("aria-label", t("ariaPlay"));
   els.playerProgress.style.width = "0%";
 }
 
@@ -321,13 +329,13 @@ function togglePlayback() {
 els.audioClip.addEventListener("play", () => {
   els.iconPlay.hidden = true;
   els.iconPause.hidden = false;
-  els.btnPlay.setAttribute("aria-label", "Пауза");
+  els.btnPlay.setAttribute("aria-label", t("ariaPause"));
 });
 
 els.audioClip.addEventListener("pause", () => {
   els.iconPlay.hidden = false;
   els.iconPause.hidden = true;
-  els.btnPlay.setAttribute("aria-label", "Воспроизвести");
+  els.btnPlay.setAttribute("aria-label", t("ariaPlay"));
 });
 
 els.audioClip.addEventListener("ended", () => {
@@ -350,10 +358,27 @@ els.btnPlay.addEventListener("click", togglePlayback);
 els.btnNext.addEventListener("click", () => goToCategoryScreen(true));
 
 els.btnSend.addEventListener("click", () => {
-  showToast("Клип готов к отправке! 🎉");
+  showToast(t("toastSend"));
+});
+
+/* ---------------------------- реакция на смену языка --------------------------- */
+// applyStaticTranslations() (i18n.js) уже обновляет всё, что размечено
+// data-i18n. Здесь досказываем то, что генерируется динамически на JS:
+// текст категории (три экрана), сообщение об ошибке микрофона, если оно
+// сейчас показано, и aria-label кнопки play/pause в актуальном состоянии.
+document.addEventListener("app:languagechange", () => {
+  els.categoryText.textContent = categoryText();
+  els.categoryTextRecording.textContent = categoryText();
+  els.categoryTextPlayback.textContent = categoryText();
+
+  if (!els.micError.hidden) {
+    els.micError.textContent = t("micError");
+  }
+
+  els.btnPlay.setAttribute("aria-label", els.audioClip.paused ? t("ariaPlay") : t("ariaPause"));
 });
 
 /* ---------------------------------- init ---------------------------------- */
 
-els.categoryText.textContent = state.category;
+els.categoryText.textContent = categoryText();
 els.roundNumber.textContent = String(state.round);

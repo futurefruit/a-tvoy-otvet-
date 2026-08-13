@@ -15,21 +15,25 @@
 <body>
   <div class="app">
     <header class="app-header">
-      <h1 class="logo">Он бы тебе сказал<span class="logo-dot">.</span></h1>
+      <div class="lang-switch" role="group" data-i18n-attr="aria-label:langSwitchAriaLabel" aria-label="Выбор языка интерфейса">
+        <button type="button" class="lang-btn" data-lang="ru" aria-pressed="true">RU</button>
+        <button type="button" class="lang-btn" data-lang="uk" aria-pressed="false">UA</button>
+      </div>
+      <h1 class="logo"><span data-i18n="title">Он бы тебе сказал</span><span class="logo-dot">.</span></h1>
     </header>
 
     <main class="stage">
       <!-- Экран 1: старт -->
       <section id="screen-start" class="screen is-active" aria-live="polite">
         <div class="screen-inner">
-          <p class="tagline">Вечеринка-игра про вещи, которые слишком много о тебе знают</p>
+          <p class="tagline" data-i18n="tagline">Вечеринка-игра про вещи, которые слишком много о тебе знают</p>
           <div class="hero-emoji" aria-hidden="true">🪞</div>
-          <p class="rules">
+          <p class="rules" data-i18n="startRules">
             Достань случайный предмет из своей комнаты и озвучь голосом,
             что он на самом деле думает о своём хозяине. У тебя будет 10 секунд.
           </p>
           <button id="btn-start" class="btn btn-primary btn-lg" type="button">
-            Достать предмет
+            <span data-i18n="btnStart">Достать предмет</span>
           </button>
         </div>
       </section>
@@ -37,17 +41,17 @@
       <!-- Экран 2: категория -->
       <section id="screen-category" class="screen" aria-live="polite">
         <div class="screen-inner">
-          <p class="eyebrow">Раунд <span id="round-number">1</span></p>
-          <p class="category-label">Достань что-нибудь из категории</p>
+          <p class="eyebrow"><span data-i18n="roundLabel">Раунд</span> <span id="round-number">1</span></p>
+          <p class="category-label" data-i18n="categoryLabel">Достань что-нибудь из категории</p>
           <div class="category-card">
             <span id="category-text" class="category-text">что-то на кухне</span>
           </div>
-          <p class="rules rules-small">
+          <p class="rules rules-small" data-i18n="categoryRules">
             Возьми первый попавшийся предмет и представь: если бы он мог говорить —
             что бы он сказал о тебе?
           </p>
           <button id="btn-record" class="btn btn-primary btn-lg" type="button">
-            🎙️ Записать реплику
+            <span aria-hidden="true">🎙️</span> <span data-i18n="btnRecord">Записать реплику</span>
           </button>
           <p id="mic-error" class="mic-error" hidden></p>
         </div>
@@ -56,7 +60,7 @@
       <!-- Экран 3: запись -->
       <section id="screen-recording" class="screen" aria-live="polite">
         <div class="screen-inner">
-          <p class="category-label">Говори за:</p>
+          <p class="category-label" data-i18n="recordingLabel">Говори за:</p>
           <div class="category-card category-card-small">
             <span id="category-text-recording" class="category-text">что-то на кухне</span>
           </div>
@@ -64,7 +68,7 @@
           <div class="recorder">
             <div class="recorder-badge">
               <span class="rec-dot" aria-hidden="true"></span>
-              <span>Запись</span>
+              <span data-i18n="recBadge">Запись</span>
             </div>
 
             <canvas id="waveform" class="waveform" width="600" height="140" aria-hidden="true"></canvas>
@@ -76,7 +80,7 @@
           </div>
 
           <button id="btn-cancel-recording" class="btn btn-ghost" type="button">
-            Отменить
+            <span data-i18n="btnCancel">Отменить</span>
           </button>
         </div>
       </section>
@@ -84,7 +88,7 @@
       <!-- Экран 4: воспроизведение -->
       <section id="screen-playback" class="screen" aria-live="polite">
         <div class="screen-inner">
-          <p class="category-label">Реплика от лица:</p>
+          <p class="category-label" data-i18n="playbackLabel">Реплика от лица:</p>
           <div class="category-card category-card-small">
             <span id="category-text-playback" class="category-text">что-то на кухне</span>
           </div>
@@ -102,8 +106,12 @@
           <audio id="audio-clip" preload="metadata"></audio>
 
           <div class="action-row">
-            <button id="btn-send" class="btn btn-accent" type="button">Отправить</button>
-            <button id="btn-next" class="btn btn-primary" type="button">Следующий раунд</button>
+            <button id="btn-send" class="btn btn-accent" type="button">
+              <span data-i18n="btnSend">Отправить</span>
+            </button>
+            <button id="btn-next" class="btn btn-primary" type="button">
+              <span data-i18n="btnNext">Следующий раунд</span>
+            </button>
           </div>
         </div>
       </section>
@@ -112,6 +120,8 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <script src="storage.js"></script>
+  <script src="i18n.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
