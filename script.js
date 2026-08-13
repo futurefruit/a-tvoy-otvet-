@@ -42,9 +42,13 @@ const els = {
   btnStart: document.getElementById("btn-start"),
   btnRecord: document.getElementById("btn-record"),
   btnCancelRecording: document.getElementById("btn-cancel-recording"),
+  btnHint: document.getElementById("btn-hint"),
+  hintBox: document.getElementById("hint-box"),
+  hintText: document.getElementById("hint-text"),
   btnPlay: document.getElementById("btn-play"),
   btnSend: document.getElementById("btn-send"),
   btnNext: document.getElementById("btn-next"),
+  filterButtons: document.querySelectorAll(".filter-btn"),
 
   iconPlay: document.getElementById("icon-play"),
   iconPause: document.getElementById("icon-pause"),
@@ -71,7 +75,106 @@ let state = {
   countdownStart: 0,
   animationFrameId: null,
   countdownTimeoutId: null,
+  selectedFilter: "normal",
 };
+
+/* ---------------------------- голосовые фильтры (playback) --------------------------- */
+// Обычный / писклявый работают через playbackRate самого <audio> — дешево и
+// не требует Web Audio. Робот — эффект (bitcrusher + ring modulator) поверх
+// сигнала через AudioContext, поэтому граф строится один раз лениво и живёт
+// всё время жизни страницы (MediaElementSourceNode нельзя пересоздать на
+// том же <audio> элементе).
+let filterGraph = null;
+
+function ensureFilterGraph() {
+  if (filterGraph) {
+    return filterGraph;
+  }
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AudioCtx();
+  const source = ctx.createMediaElementSource(els.audioClip);
+
+  const dryGain = ctx.createGain();
+  dryGain.gain.value = 1;
+
+  // Грубое понижение битности — имитация bitcrusher через WaveShaper-кривую.
+  const crusher = ctx.createWaveShaper();
+  crusher.curve = makeBitcrushCurve(5);
+  crusher.oversample = "none";
+
+  // Ring modulator: несущая частота модулирует усиление сигнала.
+  const carrier = ctx.createOscillator();
+  carrier.type = "sine";
+  carrier.frequency.value = 35;
+  const ringGain = ctx.createGain();
+  ringGain.gain.value = 0; // базовое значение модулируется carrier'ом
+  carrier.connect(ringGain.gain);
+  carrier.start();
+
+  const wetGain = ctx.createGain();
+  wetGain.gain.value = 0;
+
+  source.connect(dryGain);
+  dryGain.connect(ctx.destination);
+
+  source.connect(crusher);
+  crusher.connect(ringGain);
+  ringGain.connect(wetGain);
+  wetGain.connect(ctx.destination);
+
+  filterGraph = { ctx, dryGain, wetGain };
+  return filterGraph;
+}
+
+function makeBitcrushCurve(bits) {
+  const steps = 2 ** bits;
+  const n = 1024;
+  const curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1; // -1..1
+    curve[i] = Math.round(x * steps) / steps;
+  }
+  return curve;
+}
+
+function applyVoiceFilter(name) {
+  state.selectedFilter = name;
+  const { ctx, dryGain, wetGain } = ensureFilterGraph();
+
+  if (ctx.state === "suspended") {
+    ctx.resume().catch(() => {});
+  }
+
+  const now = ctx.currentTime;
+  if (name === "robot") {
+    dryGain.gain.setTargetAtTime(0, now, 0.02);
+    wetGain.gain.setTargetAtTime(1, now, 0.02);
+    els.audioClip.playbackRate = 1;
+  } else {
+    dryGain.gain.setTargetAtTime(1, now, 0.02);
+    wetGain.gain.setTargetAtTime(0, now, 0.02);
+    els.audioClip.playbackRate = name === "squeaky" ? 1.5 : 1;
+  }
+
+  updateFilterButtonsUI();
+}
+
+function resetVoiceFilter() {
+  state.selectedFilter = "normal";
+  els.audioClip.playbackRate = 1;
+  if (filterGraph) {
+    filterGraph.dryGain.gain.setValueAtTime(1, filterGraph.ctx.currentTime);
+    filterGraph.wetGain.gain.setValueAtTime(0, filterGraph.ctx.currentTime);
+  }
+  updateFilterButtonsUI();
+}
+
+function updateFilterButtonsUI() {
+  els.filterButtons.forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.filter === state.selectedFilter);
+  });
+}
 
 function pickCategoryKey(exclude) {
   const pool = exclude ? CATEGORY_KEYS.filter((k) => k !== exclude) : CATEGORY_KEYS;
@@ -80,6 +183,25 @@ function pickCategoryKey(exclude) {
 
 function categoryText() {
   return t(`categories.${state.categoryKey}`);
+}
+
+/* ---------------------------------- подсказка (заглушка платной фичи) ------------------- */
+// По ТЗ — без проверки оплаты: нажатие сразу показывает случайную реплику
+// под текущую категорию на текущем языке. Реальная оплата подключается позже.
+
+function showHint() {
+  const lines = t(`cheatLines.${state.categoryKey}`);
+  if (!Array.isArray(lines) || lines.length === 0) {
+    return;
+  }
+  const line = lines[Math.floor(Math.random() * lines.length)];
+  els.hintText.textContent = line;
+  els.hintBox.hidden = false;
+}
+
+function resetHint() {
+  els.hintBox.hidden = true;
+  els.hintText.textContent = "";
 }
 
 function showScreen(name) {
@@ -126,6 +248,7 @@ async function startRecording() {
   state.chunks = [];
 
   els.categoryTextRecording.textContent = categoryText();
+  resetHint();
   showScreen("recording");
 
   setupWaveform(stream);
@@ -306,6 +429,7 @@ function goToPlaybackScreen() {
   els.categoryTextPlayback.textContent = categoryText();
   els.audioClip.src = state.clipUrl;
   resetPlayButton();
+  resetVoiceFilter();
   showScreen("playback");
 }
 
@@ -354,11 +478,23 @@ els.audioClip.addEventListener("timeupdate", () => {
 els.btnStart.addEventListener("click", () => goToCategoryScreen(false));
 els.btnRecord.addEventListener("click", startRecording);
 els.btnCancelRecording.addEventListener("click", cancelRecording);
+els.btnHint.addEventListener("click", showHint);
 els.btnPlay.addEventListener("click", togglePlayback);
 els.btnNext.addEventListener("click", () => goToCategoryScreen(true));
 
+els.filterButtons.forEach((btn) => {
+  btn.addEventListener("click", () => applyVoiceFilter(btn.dataset.filter));
+});
+
 els.btnSend.addEventListener("click", () => {
-  showToast(t("toastSend"));
+  // "Отправить" — заглушка (реальной отправки нет), но выбранный голосовой
+  // фильтр всё равно отражается в тосте, чтобы фильтр ощущался частью
+  // готового к отправке клипа.
+  const message =
+    state.selectedFilter === "normal"
+      ? t("toastSend")
+      : `${t("toastSend")} (${t(`filters.${state.selectedFilter}`)})`;
+  showToast(message);
 });
 
 /* ---------------------------- реакция на смену языка --------------------------- */
@@ -374,6 +510,10 @@ document.addEventListener("app:languagechange", () => {
   if (!els.micError.hidden) {
     els.micError.textContent = t("micError");
   }
+
+  // Подсказка — случайная фраза на конкретном языке; при смене языка проще
+  // и честнее скрыть её, чем показывать текст не на том языке.
+  resetHint();
 
   els.btnPlay.setAttribute("aria-label", els.audioClip.paused ? t("ariaPlay") : t("ariaPause"));
 });

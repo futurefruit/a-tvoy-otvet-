@@ -163,9 +163,8 @@ button {
   margin: 0;
 }
 
-.hero-emoji {
-  font-size: 64px;
-  line-height: 1;
+.hero-icon {
+  display: flex;
   filter: drop-shadow(0 8px 24px rgba(232, 89, 139, 0.35));
 }
 
@@ -368,6 +367,57 @@ button {
   color: var(--text);
 }
 
+/* ---------------------------------- hint (paid feature UI) ---------------------------------- */
+
+.btn-hint {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  border: 1px solid transparent;
+  background-image: linear-gradient(var(--bg-card), var(--bg-card)),
+    linear-gradient(120deg, var(--yellow), var(--pink));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.btn-hint:active {
+  transform: scale(0.97);
+}
+
+.pro-badge {
+  background: linear-gradient(120deg, var(--yellow), var(--pink));
+  color: #1a1420;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.hint-box {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--pink);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.hint-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
 /* ---------------------------------- player ---------------------------------- */
 
 .player {
@@ -414,6 +464,41 @@ button {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, var(--pink), var(--yellow));
+}
+
+.filter-row {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.filter-btn:hover {
+  color: var(--text);
+}
+
+.filter-btn.is-active {
+  background: linear-gradient(120deg, var(--pink), #ff85b3);
+  border-color: transparent;
+  color: #2a0f1a;
 }
 
 .action-row {

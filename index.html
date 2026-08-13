@@ -18,6 +18,7 @@
       <div class="lang-switch" role="group" data-i18n-attr="aria-label:langSwitchAriaLabel" aria-label="Выбор языка интерфейса">
         <button type="button" class="lang-btn" data-lang="ru" aria-pressed="true">RU</button>
         <button type="button" class="lang-btn" data-lang="uk" aria-pressed="false">UA</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
       </div>
       <h1 class="logo"><span data-i18n="title">Он бы тебе сказал</span><span class="logo-dot">.</span></h1>
     </header>
@@ -27,7 +28,26 @@
       <section id="screen-start" class="screen is-active" aria-live="polite">
         <div class="screen-inner">
           <p class="tagline" data-i18n="tagline">Вечеринка-игра про вещи, которые слишком много о тебе знают</p>
-          <div class="hero-emoji" aria-hidden="true">🪞</div>
+          <div class="hero-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" width="64" height="64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="heroGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#F4B942" />
+                  <stop offset="1" stop-color="#E8598B" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M12 14h40a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H30l-10 10v-10h-8a6 6 0 0 1-6-6V20a6 6 0 0 1 6-6z"
+                stroke="url(#heroGrad)"
+                stroke-width="3"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+              />
+              <circle cx="24" cy="29" r="2.6" fill="url(#heroGrad)" />
+              <circle cx="32" cy="29" r="2.6" fill="url(#heroGrad)" />
+              <circle cx="40" cy="29" r="2.6" fill="url(#heroGrad)" />
+            </svg>
+          </div>
           <p class="rules" data-i18n="startRules">
             Достань случайный предмет из своей комнаты и озвучь голосом,
             что он на самом деле думает о своём хозяине. У тебя будет 10 секунд.
@@ -77,6 +97,15 @@
               <div id="timer-bar" class="timer-bar"></div>
             </div>
             <div id="timer-text" class="timer-text">10</div>
+
+            <button id="btn-hint" class="btn-hint" type="button">
+              <span class="pro-badge" aria-hidden="true">PRO</span>
+              <span aria-hidden="true">🔒</span>
+              <span data-i18n="btnHint">Подсказать</span>
+            </button>
+            <div id="hint-box" class="hint-box" hidden>
+              <p id="hint-text" class="hint-text"></p>
+            </div>
           </div>
 
           <button id="btn-cancel-recording" class="btn btn-ghost" type="button">
@@ -101,6 +130,18 @@
             <div class="player-track">
               <div id="player-progress" class="player-progress"></div>
             </div>
+          </div>
+
+          <div class="filter-row" role="group" data-i18n-attr="aria-label:filterGroupAriaLabel" aria-label="Голосовой фильтр">
+            <button type="button" class="filter-btn is-active" data-filter="normal">
+              <span aria-hidden="true">🎵</span> <span data-i18n="filters.normal">Обычный</span>
+            </button>
+            <button type="button" class="filter-btn" data-filter="squeaky">
+              <span aria-hidden="true">🐿️</span> <span data-i18n="filters.squeaky">Писклявый</span>
+            </button>
+            <button type="button" class="filter-btn" data-filter="robot">
+              <span aria-hidden="true">🤖</span> <span data-i18n="filters.robot">Робот</span>
+            </button>
           </div>
 
           <audio id="audio-clip" preload="metadata"></audio>
